@@ -79,12 +79,20 @@ def workflow(als_max_iter, keras_hidden_units, max_row_limit):
         os.environ['SPARK_CONF_DIR'] = os.path.abspath('.')
         git_commit = active_run.data.tags.get(mlflow_tags.MLFLOW_GIT_COMMIT)
         load_raw_data_run = _get_or_run("load_raw_data", {}, git_commit)
-        ratings_csv_uri = os.path.join(load_raw_data_run.info.artifact_uri, "ratings-csv-dir")
+        ratings_csv_uri = os.path.join(load_raw_data_run.info.artifact_uri, "ratings-csv-dir/ratings.csv")
         etl_data_run = _get_or_run("etl_data",
                                    {"ratings_csv": ratings_csv_uri,
                                     "max_row_limit": max_row_limit},
                                    git_commit)
-        ratings_parquet_uri = os.path.join(etl_data_run.info.artifact_uri, "ratings-parquet-dir")
+        file_name = ''
+        import boto3
+        client = boto3.client('s3')
+        parquet_artifact_folder = '/'.join([x for ind, x in enumerate(etl_data_run.info.artifact_uri.split('/')) if ind > 2])
+        if client.list_objects(Bucket='mlflow-artifact-store-poc',Prefix=parquet_artifact_folder).get('Contents'):
+            for file in client.list_objects(Bucket='mlflow-artifact-store-poc',Prefix=parquet_artifact_folder).get('Contents'):
+                if file['Key'].split('.')[-1] == 'parquet':
+                    file_name =  file['Key'].split('/')[-1]
+        ratings_parquet_uri = os.path.join(etl_data_run.info.artifact_uri, "ratings-parquet-dir" + "/" + file_name)
 
         # We specify a spark-defaults.conf to override the default driver memory. ALS requires
         # significant memory. The driver memory property cannot be set by the application itself.
