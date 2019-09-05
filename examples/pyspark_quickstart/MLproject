@@ -5,8 +5,5 @@ conda_env: conda.yaml
 entry_points:
   main:
     parameters:
-      ratings_data: path
-      max_iter: {type: int, default: 10}
-      reg_param: {type: float, default: 0.1}
       rank: {type: int, default: 12}
-    command: "python als.py --ratings-data 's3://mlflow-artifact-store-poc/0/605b53299e1d417eb1808c5408b1eb2e/artifacts/ratings-parquet-dir/part-00000-e3894819-78dd-48c2-90ee-35f574eb9ae3-c000.snappy.parquet' --max-iter {max_iter} --reg-param {reg_param} --rank {rank}"
+    command: "python simple_words.py --rank {rank}"
