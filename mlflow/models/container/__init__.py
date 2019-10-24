@@ -109,6 +109,17 @@ def _install_pyfunc_deps(model_path=None, install_mlflow=False):
     install_server_deps = ["pip install gunicorn[gevent]"]
     if Popen(["bash", "-c", " && ".join(activate_cmd + install_server_deps)]).wait() != 0:
         raise Exception("Failed to install serving dependencies into the model environment.")
+
+    print("installing sagemaker-specific tensorflow packages")
+    # Install GPU dependencies on Amazon
+    if has_env and os.environ.get('MLFLOW_SAGEMAKER_GPU_ENABLED', "0") == "1":
+        print("installing sagemaker-specific tensorflow packages")
+        install_tf_gpu_dep = "pip install --force-reinstall --ignore-installed --no-cache-dir -U %s" % \
+                          os.environ.get('MLFLOW_SAGEMAKER_GPU_PACKAGE')
+        install_gpu_deps =[install_tf_gpu_dep]
+        if Popen(["bash", "-c", " && ".join(activate_cmd + install_gpu_deps)]).wait() != 0:
+            raise Exception("Failed to install Sagemaker Tensorflow packages into the model environment.")
+
     if has_env and install_mlflow:
         install_mlflow_cmd = [
             "pip install /opt/mlflow/." if _container_includes_mlflow_source()
