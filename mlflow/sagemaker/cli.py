@@ -72,8 +72,10 @@ def commands():
                     " for monitoring the health and status of the pending deployment via"
                     " native SageMaker APIs or the AWS console. If the command is executed"
                     " asynchronously using the `--async` flag, this value is ignored."))
+@click.option("--env", default=None, multiple=True,
+              help=("Additional environment variables to be setup on SageMaker Model Container."))
 def deploy(app_name, model_uri, execution_role_arn, bucket, image_url, region_name, mode, archive,
-           instance_type, instance_count, vpc_config, flavor, asynchronous, timeout):
+           instance_type, instance_count, vpc_config, flavor, asynchronous, timeout, env):
     """
     Deploy model on Sagemaker as a REST API endpoint. Current active AWS account needs to have
     correct permissions setup.
@@ -95,7 +97,7 @@ def deploy(app_name, model_uri, execution_role_arn, bucket, image_url, region_na
                             image_url=image_url, region_name=region_name, mode=mode,
                             archive=archive, instance_type=instance_type,
                             instance_count=instance_count, vpc_config=vpc_config, flavor=flavor,
-                            synchronous=(not asynchronous), timeout_seconds=timeout)
+                            synchronous=(not asynchronous), timeout_seconds=timeout, env=env)
 
 
 @commands.command("delete")
